@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   wear_plus: ^1.2.1
   wearable_rotary: ^2.0.2
-  flutter_background: ^1.2.0
   flutter_foreground_service: ^0.4.1
 
 dev_dependencies:

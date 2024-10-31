@@ -27,16 +27,14 @@ class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
     );
     _animation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.decelerate,
-    ).drive(Tween<double>(begin: 1000, end: 0));
+      curve: Curves.easeOut,
+    ).drive(Tween<double>(begin: 100, end: 0));
   }
 
   void startHapticFeedback() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       triggerHapticFeedback();
     });
-    _animationController.reset();
-    _animationController.forward();
   }
 
   void stopHapticFeedback() {
