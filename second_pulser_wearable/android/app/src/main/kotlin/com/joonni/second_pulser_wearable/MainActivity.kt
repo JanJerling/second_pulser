@@ -1,4 +1,4 @@
-package com.joonni.second_pulser_wearable
+package com.second_pulser
 
 import io.flutter.embedding.android.FlutterActivity
 import android.os.Bundle
