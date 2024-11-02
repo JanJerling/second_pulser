@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 
+import 'vibration_channel.dart';
+
 class HapticFeedbackScreen extends StatefulWidget {
   const HapticFeedbackScreen({super.key});
 
