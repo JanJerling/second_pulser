@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
-
-import 'vibration_channel.dart';
+import 'package:vibration/vibration.dart';
+import 'package:intl/intl.dart';
 
 class HapticFeedbackScreen extends StatefulWidget {
   const HapticFeedbackScreen({super.key});
@@ -16,6 +15,8 @@ class HapticFeedbackScreen extends StatefulWidget {
 class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
     with SingleTickerProviderStateMixin {
   Timer? _timer;
+  Timer? _clockTimer;
+  String currentTime = DateFormat('HH:mm').format(DateTime.now());
   bool _isRunning = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -23,14 +24,31 @@ class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
   @override
   void initState() {
     super.initState();
+
+    // Animation for start stop shadow effect
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
     );
     _animation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeOut,
+      curve: Curves.easeInOutQuint,
     ).drive(Tween<double>(begin: 100, end: 0));
+
+    // Set the initial time
+    setState(() {
+      currentTime = DateFormat('HH:mm').format(DateTime.now());
+    });
+
+    // Start the clock timer
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
+      if (now.second == 0) {
+        setState(() {
+          currentTime = DateFormat('HH:mm').format(now);
+        });
+      }
+    });
   }
 
   void startHapticFeedback() {
@@ -43,8 +61,11 @@ class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
     _timer?.cancel();
   }
 
-  void triggerHapticFeedback() {
-    HapticFeedback.vibrate();
+  void triggerHapticFeedback() async {
+    bool? hasVibrator = await Vibration.hasVibrator();
+    if (hasVibrator == true) {
+      Vibration.vibrate(duration: 255);
+    }
   }
 
   void toggleHapticFeedback() {
@@ -67,6 +88,7 @@ class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
     _timer?.cancel();
     ForegroundService().start();
     _animationController.dispose();
+    _clockTimer?.cancel();
     super.dispose();
   }
 
@@ -74,28 +96,44 @@ class _HapticFeedbackScreenState extends State<HapticFeedbackScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animation,
-          builder: (context, child) {
-            return IconButton(
-              onPressed: toggleHapticFeedback,
-              icon: Icon(
-                _isRunning ? Icons.stop : Icons.play_arrow,
-                size: 62,
-                shadows: _isRunning
-                    ? [
-                        Shadow(
-                          blurRadius: _animation.value,
-                          color: Colors.white,
-                        ),
-                      ]
-                    : null,
-              ),
-            );
-          },
+      body: Stack(children: [
+        Center(
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return IconButton(
+                onPressed: toggleHapticFeedback,
+                icon: Icon(
+                  _isRunning ? Icons.stop : Icons.play_arrow,
+                  size: 62,
+                  shadows: _isRunning
+                      ? [
+                          Shadow(
+                            blurRadius: _animation.value,
+                            color: Colors.white,
+                          ),
+                        ]
+                      : null,
+                ),
+              );
+            },
+          ),
         ),
-      ),
+        Positioned(
+          top: 10,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Text(
+              currentTime,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }
